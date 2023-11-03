@@ -11,32 +11,39 @@ import exit msvcrt.dll    ; exit is a function that ends the calling process. It
 ; our data is declared here (the variables needed by our program)
 segment data use32 class=data
     ; ...
-    ;(a*a/b+b*b)/(2+b)+e-x --- signed
-    a DB -4
-    b DW 2
-    e DD 3
-    x DQ 8
+    ;(a+b)/(2-b*b+b/c)-x --- unsigned
+    a DD 5 
+    b DB 3
+    c DB 1
+    x DQ 4
 ; our code starts here
 segment code use32 class=code
     start:
         ; ...
-        mov AL, [a]  ;AL = a
-        imul byte[a] ;AX = a*a
-        mov DX, 0    ;DX:AX = a*a
-        idiv word[b] ;AX = a*a/b
-        mov CX, AX   ;CX = a*a/b
-        mov AX, [b]  ;AX = b
-        imul word[b] ;DX:AX = b*b
-        add AX, CX   ;AX = a*a/b+b*b
-        adc DX, 0    ;DX:AX = a*a/b+b*b
-        mov BX, 2    ;BX = 2
-        add BX, [b]  ;BX = 2+b
-        idiv BX      ;AX = (a*a/b+b*b)/(2+b)
-        CWDE         ;EAX = (a*a/b+b*b)/(2+b)
-        add EAX, [e] ;EAX = (a*a/b+b*b)/(2+b)+e
-        CDQ          ;EDX:EAX = (a*a/b+b*b)/(2+b)+e
+        mov EBX, [a]  ;EBX = a
+        mov AL, [b]   ;AL = b
+        CBW           ;AX = b
+        CWDE          ;EAX = b
+        add EBX, EAX  ;EBX = a+b
+        mov CX, 2     ;CX = 2
+        mov AL, [b]   ;AL = b
+        imul byte[b]  ;AX = b*b
+        sub CX, AX    ;CX = 2-b*b
+        mov AL, [b]   ;AL = b
+        mov AH, 0     ;AX = b
+        idiv byte[c]  ;AL = b/c
+        add CL, AL
+        adc CH, 0     ;CX = 2-b*b+b/c
+        mov [a],EBX   ;a = a+b
+        mov AX, word[a]
+        mov DX, word[a+2] ;DX:AX = a+b
+        idiv CX        ;AX = (a+b)/(2-b*b+b/c)
+        CWDE          ;EAX = (a+b)/(2-b*b+b/c)
+        CDQ           ;EDX:EAX = (a+b)/(2-b*b+b/c)
         sub EAX, dword[x]
-        sbb EDX, dword[x+4] ;EDX:EAX = (a*a/b+b*b)/(2+b)+e-x
+        sbb EDX, dword[x+4] ;EDX:EAX = (a+b)/(2-b*b+b/c)-x
+        
+        
         ; exit(0)
         push    dword 0      ; push the parameter for exit onto the stack
         call    [exit]       ; call exit to terminate the program

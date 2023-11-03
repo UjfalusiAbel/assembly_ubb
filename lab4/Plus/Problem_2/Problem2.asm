@@ -11,32 +11,30 @@ import exit msvcrt.dll    ; exit is a function that ends the calling process. It
 ; our data is declared here (the variables needed by our program)
 segment data use32 class=data
     ; ...
-    ;(a*a/b+b*b)/(2+b)+e-x --- signed
-    a DB -4
-    b DW 2
-    e DD 3
-    x DQ 8
+    ;d-(a+b+c)-(a+a)  --- signed
+    a db 2
+    b dw 3
+    c dd 4
+    d dq 10
 ; our code starts here
 segment code use32 class=code
     start:
         ; ...
+        mov EBX, dword[d]
+        mov ECX, dword[d+4] ;ECX:EBX = d
         mov AL, [a]  ;AL = a
-        imul byte[a] ;AX = a*a
-        mov DX, 0    ;DX:AX = a*a
-        idiv word[b] ;AX = a*a/b
-        mov CX, AX   ;CX = a*a/b
-        mov AX, [b]  ;AX = b
-        imul word[b] ;DX:AX = b*b
-        add AX, CX   ;AX = a*a/b+b*b
-        adc DX, 0    ;DX:AX = a*a/b+b*b
-        mov BX, 2    ;BX = 2
-        add BX, [b]  ;BX = 2+b
-        idiv BX      ;AX = (a*a/b+b*b)/(2+b)
-        CWDE         ;EAX = (a*a/b+b*b)/(2+b)
-        add EAX, [e] ;EAX = (a*a/b+b*b)/(2+b)+e
-        CDQ          ;EDX:EAX = (a*a/b+b*b)/(2+b)+e
-        sub EAX, dword[x]
-        sbb EDX, dword[x+4] ;EDX:EAX = (a*a/b+b*b)/(2+b)+e-x
+        CBW          ;AX = a
+        add AX, [b]  ;AX = a+b
+        CWDE         ;EAX = a+b
+        add EAX, [c] ;EAX = a+b+c
+        sub EBX, EAX
+        sbb ECX, 0   ;ECX:EBX = d-(a+b+c)
+        mov Al, [a]  ;AL = a
+        add AL, [a]  ;AL = a+a
+        CBW
+        CWDE         ;EAX = a+a
+        sub EBX, EAX
+        sbb ECX, 0   ;ECX:EBX = d-(a+b+c)-(a+a)
         ; exit(0)
         push    dword 0      ; push the parameter for exit onto the stack
         call    [exit]       ; call exit to terminate the program
