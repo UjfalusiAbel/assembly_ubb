@@ -1,0 +1,40 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13                                      ; ...
+    14 00000000 BBBB                        a dw 1011101110111011b
+    15 00000002 9999                        b dw 1001100110011001b
+    16 00000004 0000                        c dw 0
+    17                                  ; our code starts here
+    18                                  segment code use32 class=code
+    19                                      start:
+    20                                          ; ...
+    21 00000000 668B1D[02000000]                mov BX, [b]
+    22 00000007 66C1EB0A                        shr BX, 10
+    23 0000000B 6683E307                        and BX, 0000000000000111b
+    24 0000000F 66091D[04000000]                or [c], BX ;c=0000000000000110b
+    25 00000016 800D[04000000]78                or byte[c], 0000000001111000b
+    26 0000001D 66A1[00000000]                  mov AX, [a]
+    27 00000023 66C1C006                        rol AX, 6
+    28 00000027 66258007                        and AX, 0000011110000000b
+    29 0000002B 660905[04000000]                or [c], AX
+    30 00000032 8025[04000000]FF                and byte[c], 1110011111111111b
+    30          ******************       warning: byte data exceeds bounds [-w+number-overflow]
+    31 00000039 668B1D[02000000]                mov BX, [b]
+    32 00000040 B104                            mov CL, 4
+    33 00000042 66D3C3                          rol BX, CL
+    34 00000045 6681E300E0                      and BX, 1110000000000000b
+    35 0000004A 66091D[04000000]                or [c], BX
+    36                                          
+    37                                          ; exit(0)
+    38 00000051 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    39 00000053 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

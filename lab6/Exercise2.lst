@@ -1,0 +1,53 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13                                      ; ...
+    14 00000000 0102030405                  s1 db 1,2,3,4,5
+    15                                      l1 equ $-s1
+    16 00000005 060708                      s2 db 6,7,8
+    17                                      l2 equ $-s2
+    18                                      lend equ l1+l2
+    19 00000008 00<rept>                    d times lend db 0
+    20                                  ; our code starts here
+    21                                  segment code use32 class=code
+    22                                      start:
+    23                                          ; ...
+    24 00000000 B905000000                      mov ECX, l1
+    25 00000005 BE00000000                      mov ESI, 0
+    26 0000000A BF00000000                      mov EDI, 0
+    27                                          
+    28 0000000F E310                            jecxz afterloop1
+    29                                          loop1:
+    30 00000011 8A86[00000000]                      mov AL, [s1+ESI]
+    31 00000017 8887[08000000]                      mov [d+EDI], AL
+    32 0000001D 46                                  inc ESI
+    33 0000001E 47                                  inc EDI
+    34 0000001F E2F0                            loop loop1
+    35                                          afterloop1
+    35          ******************       warning: label alone on a line without a colon might be in error [-w+orphan-labels]
+    36                                          
+    37 00000021 B903000000                      mov ECX, l2
+    38 00000026 BE02000000                      mov ESI, l2-1
+    39 0000002B E310                            jecxz afterloop2
+    40                                          loop2:
+    41 0000002D 8A86[05000000]                      mov AL, [s2+ESI]
+    42 00000033 8887[08000000]                      mov [d+EDI], AL
+    43 00000039 4E                                  dec ESI
+    44 0000003A 47                                  inc EDI
+    45 0000003B E2F0                            loop loop2
+    46                                          afterloop2
+    46          ******************       warning: label alone on a line without a colon might be in error [-w+orphan-labels]
+    47                                             
+    48                                          
+    49                                          ; exit(0)
+    50 0000003D 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    51 0000003F FF15[00000000]                  call    [exit]       ; call exit to terminate the program
