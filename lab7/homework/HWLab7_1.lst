@@ -11,54 +11,53 @@
     11                                  ; our data is declared here (the variables needed by our program)
     12                                  segment data use32 class=data
     13                                      ; ...
-    14 00000000 39302A51F411                s DW 12345, 20778, 4596
-    15                                      lens equ $-s
-    16 00000006 01<rept>                    r times 5 db 1
-    17 0000000B 00<rept>                    a times 5*lens db 0
-    18 00000029 00000000                    helper dd 0
-    19                                  ; our code starts here
-    20                                  segment code use32 class=code
-    21                                      start:
-    22                                          ; ...
-    23 00000000 B903000000                      mov ECX, lens/2
-    24 00000005 BE[00000000]                    mov ESI, s
-    25 0000000A BF[0B000000]                    mov EDI, a
-    26 0000000F E34F                            jecxz endloop
-    27                                          loop1:
-    28 00000011 FC                                  CLD
-    29 00000012 B800000000                          mov EAX, 0
-    30 00000017 89FB                                mov EBX, EDI
-    31 00000019 66AD                                LODSW
-    32 0000001B BF[06000000]                        mov EDI, r
-    33                                              divide:
-    34 00000020 BA00000000                              mov EDX, 0 ;EDX:EAX = [ESI]
-    35 00000025 C705[29000000]0A00-                     mov dword[helper], 10
-    35 0000002D 0000               
-    36 0000002F F735[29000000]                          div dword[helper]
-    37 00000035 A3[29000000]                            mov [helper], EAX
-    38 0000003A 89D0                                    mov EAX, EDX
-    39 0000003C AA                                      STOSB 
-    40 0000003D A1[29000000]                            mov EAX, [helper]
-    41 00000042 83F800                                  CMP EAX,0
-    42 00000045 77D9                                ja divide
-    43 00000047 89F8                                mov EAX, EDI ;address r+len of number-1
-    44 00000049 89DF                                mov EDI, EBX ;address a
-    45 0000004B 89F3                                mov EBX, ESI ;address s
-    46 0000004D 89C6                                mov ESI, EAX ;address r+len of number-1
-    47 0000004F 4E                                  dec ESI
-    48                                              invert:
-    49 00000050 FD                                      STD
-    50 00000051 AC                                      LODSB   
-    51 00000052 FC                                      CLD
-    52 00000053 AA                                      STOSB
-    53 00000054 81FE[06000000]                          CMP ESI, r
-    54 0000005A 73F4                                jnb invert
-    55 0000005C 89DE                                mov ESI, EBX    
-    56                                                  
-    57                                                  
-    58 0000005E E2B1                            loop loop1
-    59                                          endloop:
-    60                                  
-    61                                          ; exit(0)
-    62 00000060 6A00                            push    dword 0      ; push the parameter for exit onto the stack
-    63 00000062 FF15[00000000]                  call    [exit]       ; call exit to terminate the program
+    14                                      ;Being given a string of words, obtain the string (of bytes) of the digits in base 10 of each word from this string. 
+    15 00000000 39302A51F411                s DW 12345, 20778, 4596
+    16                                      lens equ $-s
+    17 00000006 01<rept>                    r times 5 db 1
+    18 0000000B 00<rept>                    a times 5*lens db 0
+    19 00000029 00000000                    helper dd 0
+    20                                  ; our code starts here
+    21                                  segment code use32 class=code
+    22                                      start:
+    23                                          ; ...
+    24 00000000 B903000000                      mov ECX, lens/2
+    25 00000005 BE[00000000]                    mov ESI, s
+    26 0000000A BF[0B000000]                    mov EDI, a
+    27 0000000F E34F                            jecxz endloop
+    28                                          loop1:
+    29 00000011 FC                                  CLD
+    30 00000012 B800000000                          mov EAX, 0
+    31 00000017 89FB                                mov EBX, EDI
+    32 00000019 66AD                                LODSW
+    33 0000001B BF[06000000]                        mov EDI, r
+    34                                              divide:
+    35 00000020 BA00000000                              mov EDX, 0 ;EDX:EAX = [ESI]
+    36 00000025 C705[29000000]0A00-                     mov dword[helper], 10
+    36 0000002D 0000               
+    37 0000002F F735[29000000]                          div dword[helper]
+    38 00000035 A3[29000000]                            mov [helper], EAX
+    39 0000003A 89D0                                    mov EAX, EDX
+    40 0000003C AA                                      STOSB 
+    41 0000003D A1[29000000]                            mov EAX, [helper]
+    42 00000042 83F800                                  CMP EAX,0
+    43 00000045 77D9                                ja divide
+    44 00000047 89F8                                mov EAX, EDI ;address r+len of number-1
+    45 00000049 89DF                                mov EDI, EBX ;address a
+    46 0000004B 89F3                                mov EBX, ESI ;address s
+    47 0000004D 89C6                                mov ESI, EAX ;address r+len of number-1
+    48 0000004F 4E                                  dec ESI
+    49                                              invert:
+    50 00000050 FD                                      STD
+    51 00000051 AC                                      LODSB   
+    52 00000052 FC                                      CLD
+    53 00000053 AA                                      STOSB
+    54 00000054 81FE[06000000]                          CMP ESI, r
+    55 0000005A 73F4                                jnb invert
+    56 0000005C 89DE                                mov ESI, EBX    
+    57 0000005E E2B1                            loop loop1
+    58                                          endloop:
+    59                                  
+    60                                          ; exit(0)
+    61 00000060 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    62 00000062 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

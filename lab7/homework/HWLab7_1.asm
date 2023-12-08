@@ -11,6 +11,7 @@ import exit msvcrt.dll    ; exit is a function that ends the calling process. It
 ; our data is declared here (the variables needed by our program)
 segment data use32 class=data
     ; ...
+    ;Being given a string of words, obtain the string (of bytes) of the digits in base 10 of each word from this string. 
     s DW 12345, 20778, 4596
     lens equ $-s
     r times 5 db 1
@@ -53,8 +54,6 @@ segment code use32 class=code
                 CMP ESI, r
             jnb invert
             mov ESI, EBX    
-                
-                
         loop loop1
         endloop:
 

@@ -1,0 +1,85 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit
+     8                                  extern fopen
+     9                                  extern fprintf
+    10                                  extern fclose
+    11                                  import exit msvcrt.dll
+    12                                  import fopen msvcrt.dll
+    13                                  import fprintf msvcrt.dll
+    14                                  import fclose msvcrt.dll
+    15                                  
+    16                                  ; our data is declared here (the variables needed by our program)
+    17                                  segment data use32 class=data
+    18                                      ; ...
+    19                                      ;A file name and a text (defined in the data segment) are given. The text contains lowercase letters, digits and spaces. Replace all the digits on odd positions ;with the character ‘X’. Create the file with 
+    20                                      
+    21 00000000 646174612E74787400          file_name db "data.txt", 0
+    22 00000009 7700                        access_mode db "w", 0
+    23 0000000B FFFFFFFF                    file_descriptor dd -1
+    24 0000000F 676466352037666438-         text db "gdf5 7fd8 fh42"
+    24 00000018 2066683432         
+    25                                      len equ $-text
+    26                                  ; our code starts here
+    27                                  segment code use32 class=code
+    28                                      start:
+    29                                          ; ...
+    30 00000000 BE00000000                      mov ESI, 0
+    31 00000005 B90E000000                      mov ECX, len
+    32 0000000A BB02000000                      mov EBX, 2
+    33 0000000F E374                            jecxz skip_process
+    34                                          do:
+    35 00000011 89F0                                mov EAX, ESI
+    36 00000013 BA00000000                          mov EDX, 0
+    37 00000018 F7F3                                div EBX
+    38 0000001A 83FA01                              CMP EDX, 1
+    39 0000001D 7463                                je check_parity
+    40 0000001F 80BE[0F000000]30                    CMP byte[text+ESI], "0"
+    41 00000026 7453                                je number
+    42 00000028 80BE[0F000000]31                    CMP byte[text+ESI], "1"
+    43 0000002F 744A                                je number
+    44 00000031 80BE[0F000000]32                    CMP byte[text+ESI], "2"
+    45 00000038 7441                                je number
+    46 0000003A 80BE[0F000000]33                    CMP byte[text+ESI], "3"
+    47 00000041 7438                                je number
+    48 00000043 80BE[0F000000]34                    CMP byte[text+ESI], "4"
+    49 0000004A 742F                                je number
+    50 0000004C 80BE[0F000000]35                    CMP byte[text+ESI], "5"
+    51 00000053 7426                                je number
+    52 00000055 80BE[0F000000]36                    CMP byte[text+ESI], "6"
+    53 0000005C 741D                                je number
+    54 0000005E 80BE[0F000000]37                    CMP byte[text+ESI], "7"
+    55 00000065 7414                                je number
+    56 00000067 80BE[0F000000]38                    CMP byte[text+ESI], "8"
+    57 0000006E 740B                                je number
+    58 00000070 80BE[0F000000]39                    CMP byte[text+ESI], "9"
+    59 00000077 7402                                je number
+    60 00000079 EB07                                jmp not_number
+    61                                              number:
+    62 0000007B C686[0F000000]58                        mov byte[text+ESI],"X"
+    63                                              not_number:
+    64                                              check_parity:
+    65 00000082 46                                  inc ESI
+    66 00000083 E28C                                loop do
+    67                                          skip_process:
+    68 00000085 68[09000000]                    push dword access_mode     
+    69 0000008A 68[00000000]                    push dword file_name
+    70 0000008F FF15[00000000]                  call [fopen]
+    71 00000095 83C408                          add ESP, 4*2
+    72 00000098 A3[0B000000]                    mov [file_descriptor], EAX
+    73 0000009D 83F800                          CMP EAX, 0
+    74 000000A0 7420                            je file_error
+    75 000000A2 68[0F000000]                    push dword text
+    76 000000A7 FF35[0B000000]                  push dword [file_descriptor]
+    77 000000AD FF15[00000000]                  call [fprintf]
+    78 000000B3 83C408                          add esp, 4*2
+    79 000000B6 FF35[0B000000]                  push dword [file_descriptor]
+    80 000000BC FF15[00000000]                  call [fclose]
+    81                                          file_error:
+    82                                          ; exit(0)
+    83 000000C2 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    84 000000C4 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

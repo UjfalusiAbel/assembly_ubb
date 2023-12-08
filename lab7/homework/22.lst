@@ -1,0 +1,56 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13                                      ; ...
+    14 00000000 02030507                    input db 2, 3, 5, 7
+    15                                      len equ $ - input
+    16 00000004 04010702                    src db 4, 1, 7, 2,
+    17                                      N equ $ - src
+    18 00000008 07000908                    dst db 7, 0, 9, 8
+    19 0000000C 01<rept>                    output times len db 1
+    20 00000010 00                          i db 0
+    21                                  ; our code starts here
+    22                                  segment code use32 class=code
+    23                                      start:
+    24                                          ; ...
+    25 00000000 B904000000                      mov ECX, len
+    26 00000005 BE[00000000]                    mov ESI, input
+    27 0000000A BF[0C000000]                    mov EDI, output
+    28                                          replace_loop:
+    29 0000000F AC                                  LODSB
+    30 00000010 89F3                                mov EBX, ESI
+    31 00000012 BE[04000000]                        mov ESI, src
+    32 00000017 88C2                                mov DL, AL
+    33 00000019 C605[10000000]00                    mov byte[i], 0
+    34                                              src_loop:
+    35 00000020 AC                                      LODSB
+    36 00000021 38D0                                    CMP AL, DL
+    37 00000023 7411                                    je found
+    38 00000025 FE05[10000000]                          inc byte[i]
+    39 0000002B 803D[10000000]04                        CMP byte[i], N
+    40 00000032 72EC                                    jb src_loop
+    41 00000034 7410                                    je not_found
+    42                                              found:
+    43 00000036 BE[08000000]                            mov ESI, dst
+    44 0000003B 0335[10000000]                          add ESI, [i]
+    45 00000041 A4                                      MOVSB
+    46 00000042 87DE                                    XCHG EBX, ESI
+    47 00000044 EB04                                    jmp found_end
+    48                                              not_found:
+    49 00000046 87DE                                    XCHG EBX, ESI
+    50 00000048 4E                                      dec ESI
+    51 00000049 A4                                      MOVSB
+    52                                              found_end:
+    53 0000004A E2C3                                loop replace_loop
+    54                                          ; exit(0)
+    55 0000004C 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    56 0000004E FF15[00000000]                  call    [exit]       ; call exit to terminate the program
